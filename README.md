@@ -1,36 +1,48 @@
-# Todo API
+# Django Process REST API on Cloudflare Workers
 
-A simple Task/Process REST API built with Django + Django REST Framework.
+A Django + Django REST Framework API exposing the `Process` model, deployed to
+Cloudflare Workers (Python) with a D1 database backend via
+[`django-cf`](https://github.com/cloudflare/workers-py/tree/main/packages/django-cf).
 
 ## Endpoints
 
-| Method | URL            | Action            |
-|--------|----------------|-------------------|
-| GET    | `/`            | List all processes |
-| GET    | `/<id>/`       | Retrieve one process |
+| Method | URL          | Action             |
+|--------|--------------|--------------------|
+| GET    | `/`          | List all processes |
+| GET    | `/api/<id>/` | Retrieve one process |
 
-## Local setup
+## Prerequisites
 
-```bash
-python -m venv venv
-venv\Scripts\activate        # Windows
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
+- [uv](https://docs.astral.sh/uv/) (Python package manager)
+- [Node.js](https://nodejs.org/) (for wrangler)
+
+## Local development
+
+```sh
+npm install
+uv run pywrangler d1 migrations apply django-project-d1 --local
+uv run pywrangler dev
 ```
 
-## Deployment (Cloudflare Pages)
+The Worker runs locally at `http://localhost:8787`.
 
-Build command:
+## Deploy to Cloudflare
 
-```
-pip install -r requirements.txt && python manage.py collectstatic --noinput
-```
+1. Create a D1 database in the Cloudflare dashboard, e.g. `django-project-d1`.
+2. Copy its database ID into `wrangler.jsonc` (`d1_databases[0].database_id`).
+3. Apply migrations and deploy:
 
-Start command:
+   ```sh
+   uv run pywrangler d1 migrations apply django-project-d1 --remote
+   npm run deploy
+   ```
 
-```
-gunicorn todo.wsgi
-```
+## Notes
 
-The `SECRET_KEY` and `DEBUG` values in `settings.py` are for development only.
+- Schema changes are managed by hand-written Wrangler D1 SQL migrations in
+  `migrations/`, not Django's `manage.py migrate`. See the official
+  [django-todo-d1](https://github.com/cloudflare/python-workers-examples/tree/main/django-todo-d1)
+  example.
+- CORS is enabled for all origins via `src/task/middleware.py`.
+- `SECRET_KEY` is a development placeholder; set a real value as a Worker secret
+  when going to production.

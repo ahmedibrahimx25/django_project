@@ -7,21 +7,24 @@ __pycache__/
 db.sqlite3
 media/
 staticfiles/
-static/
 
 # Virtual environments
 venv/
 .venv/
-env/
 
 # Python
 *.py[cod]
 *$py.class
 
+# Node
+node_modules/
+
+# Wrangler
+.wrangler/
+
 # IDE
 .idea/
 .vscode/
-*.swp
 
 # OS
 .DS_Store
